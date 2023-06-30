@@ -13,6 +13,7 @@ public class ProductMain {
 		
 		System.out.println(computer2.getType());
 		
+		
 	}
 	
 }

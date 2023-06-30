@@ -1,11 +1,22 @@
 package ch14_싱글톤;
 
+import java.time.LocalDate;
+
 public class Samsung {
-	private String companyName;
-	private int autoIncrementSerialNumber;
+	private static Samsung instance;
 	
-	public Samsung() {
-		companyName = "SAMSUNG";
+	private String companyName;
+	private int autoIncrementSerialNumber = LocalDate.now().getYear() * 10000;
+	
+	private Samsung() {
+		companyName = Samsung.class.getSimpleName().toUpperCase();
+	}
+	
+	public static Samsung getInstance() {
+		if(instance == null) {
+			instance = new Samsung();
+		}
+		return instance;
 	}
 	
 	public int getAutoIncrementSerialNumber() {

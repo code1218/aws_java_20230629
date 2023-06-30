@@ -9,6 +9,7 @@ public class Product {
 //	}
 	
 	public Product(String model, int price) {
+		super();
 		this.model = model;
 		this.price = price;
 	}
