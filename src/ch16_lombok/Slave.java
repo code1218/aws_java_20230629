@@ -5,17 +5,30 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-@NoArgsConstructor
+//@NoArgsConstructor
 @AllArgsConstructor
+@RequiredArgsConstructor
 //@Setter
 //@EqualsAndHashCode
 //@ToString
 @Data
 public class Slave {
-	private String name;
+	private final String name;
 //	@Getter
 	private int age;
 }
+
+
+
+
+
+
+
+
+
+
+
