@@ -22,7 +22,7 @@ public class StringArrayListMain {
 		System.out.println(list);
 		
 		System.out.println("=======================================");
-		 
+		
 		ArrayList<String> arrayList = new ArrayList<String>();
 		arrayList.add("a");
 		arrayList.add("b");

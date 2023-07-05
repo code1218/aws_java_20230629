@@ -85,7 +85,6 @@ public class TestFunctionMain {
 		System.out.println(numbers);
 		numbers.removeIf(num -> num % 2 == 0);
 		System.out.println(numbers);
-		
 		numbers.forEach(num -> System.out.println("출력: " + num));
 	}
 	
