@@ -16,6 +16,8 @@ import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class ClientApplication extends JFrame {
 
@@ -25,6 +27,7 @@ public class ClientApplication extends JFrame {
 	private JTextField ipTextField;
 	private JTextField portTextField;
 	private JTextField messageTextField;
+	private JButton messageSendButton;
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -87,6 +90,13 @@ public class ClientApplication extends JFrame {
 				
 				try {
 					socket = new Socket(serverIp, Integer.parseInt(serverPort));
+					JOptionPane.showMessageDialog(
+							mainPanel,
+							"서버와의 연결에 성공하였습니다.",
+							"접속 완료",
+							JOptionPane.PLAIN_MESSAGE);
+					messageTextField.setEditable(true);
+					messageSendButton.setEnabled(true);
 					
 				} catch (NumberFormatException e1) {
 					e1.printStackTrace();
@@ -111,12 +121,20 @@ public class ClientApplication extends JFrame {
 		
 		// <<< 메세지입력 및 전송 >>>
 		messageTextField = new JTextField();
+		messageTextField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER) {
+					System.out.println("전송");
+				}
+			}
+		});
 		messageTextField.setBounds(12, 455, 507, 49);
 		messageTextField.setEditable(false);
 		mainPanel.add(messageTextField);
 		messageTextField.setColumns(10);
 		
-		JButton messageSendButton = new JButton("전송");
+		messageSendButton = new JButton("전송");
 		messageSendButton.setBounds(531, 455, 65, 49);
 		messageSendButton.setEnabled(false);
 		mainPanel.add(messageSendButton);

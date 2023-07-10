@@ -53,8 +53,14 @@ public class ServerApplication {
 						try {
 							serverSocket = new ServerSocket(port);
 							
-							while(true) {
+							while(!Thread.interrupted()) {
 								Socket socket = serverSocket.accept();
+								ConnectedSocket connectedSocket = new ConnectedSocket(socket);
+								connectedSocket.start();
+								
+								ConnectedClientController.getInstance()
+									.getConnectedSockets().add(connectedSocket);
+								
 								System.out.println("접속!!");
 								System.out.println(socket.getInetAddress().getHostAddress());
 							}
@@ -82,12 +88,29 @@ public class ServerApplication {
 						serverSocket.close();
 					} catch (IOException e) {}
 					
+					connectionThread.interrupt();
+					
+					try {
+						connectionThread.join();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					
 					System.out.println("프로그램 종료");
 					return;
 					
 				default:
 					System.out.println("다시 선택하세요.");
 			}
+			
+			if(serverSocket == null) {
+				try {
+					connectionThread.join(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}				
+			}
+			
 		}
 		
 	}
