@@ -56,6 +56,9 @@ public class SimpleGUIClient extends JFrame {
 					ClientReceiver clientReceiver = new ClientReceiver();
 					clientReceiver.start();
 					
+					RequestBodyDto<String> requestBodyDto = new RequestBodyDto<String>("join", frame.username);
+					ClientSender.getInstance().send(requestBodyDto);
+					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
