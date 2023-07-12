@@ -161,7 +161,7 @@ public class SimpleGUIClient extends JFrame {
 				if(e.getClickCount() == 2) {
 					String roomName = roomListModel.get(roomList.getSelectedIndex());
 					mainCardLayout.show(mainCardPanel, "chattingRoomPanel");
-					RequestBodyDto<String> requestBodyDto = new RequestBodyDto<String>("join", roomName);
+					RequestBodyDto<String>requestBodyDto = new RequestBodyDto<String>("join", roomName);
 					ClientSender.getInstance().send(requestBodyDto);
 				}
 			}

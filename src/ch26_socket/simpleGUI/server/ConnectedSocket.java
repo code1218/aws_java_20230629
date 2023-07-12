@@ -139,11 +139,6 @@ public class ConnectedSocket extends Thread {
 			}
 		});
 		
-		
-		SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
-			
-		
-		});
 	}
 	
 	private void sendMessage(String requestBody) {
@@ -152,12 +147,17 @@ public class ConnectedSocket extends Thread {
 		RequestBodyDto<SendMessage> requestBodyDto = gson.fromJson(requestBody, typeToken.getType());
 		SendMessage sendMessage = requestBodyDto.getBody();
 		
-		SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
-			RequestBodyDto<String> dto = 
-					new RequestBodyDto<String>("showMessage", sendMessage.getFromUsername() + ": " + sendMessage.getMessageBody());
-			
-			ServerSender.getInstance().send(connectedSocket.socket, dto);
+		SimpleGUIServer.roomList.forEach(room -> {
+			if(room.getUserList().contains(this)) {
+				room.getUserList().forEach(connectedSocket -> {
+					RequestBodyDto<String> dto = 
+							new RequestBodyDto<String>("showMessage", sendMessage.getFromUsername() + ": " + sendMessage.getMessageBody());
+					
+					ServerSender.getInstance().send(connectedSocket.socket, dto);
+				});
+			}
 		});
+		
 	}
 	
 }
