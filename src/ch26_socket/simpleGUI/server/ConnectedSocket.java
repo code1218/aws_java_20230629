@@ -17,16 +17,20 @@ import com.google.gson.reflect.TypeToken;
 
 import ch26_socket.simpleGUI.server.dto.RequestBodyDto;
 import ch26_socket.simpleGUI.server.dto.SendMessage;
+import ch26_socket.simpleGUI.server.entity.Room;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class ConnectedSocket extends Thread {
 	
 	private final Socket socket;
+	private Gson gson;
+	
 	private String username;
 	
 	@Override
 	public void run() {
+		gson = new Gson();
 		
 		while(true) {
 			try {
@@ -44,21 +48,82 @@ public class ConnectedSocket extends Thread {
 	}
 	
 	private void requestController(String requestBody) {
-		Gson gson = new Gson();
-		
+
 		String resource = gson.fromJson(requestBody, RequestBodyDto.class).getResource();
 		
 		switch(resource) {
+			case "connection": 
+				connection(requestBody);
+				break;
+		
+			case "createRoom":
+				createRoom(requestBody);
+				break;
+		
 			case "join" :
-				username = (String) gson.fromJson(requestBody, RequestBodyDto.class).getBody();
+				join(requestBody);
+				break;
+		
+			case "sendMessage" : 
+				sendMessage(requestBody);
+				break;
+		}
+	}
+	
+	private void connection(String requestBody) {
+		username = (String) gson.fromJson(requestBody, RequestBodyDto.class).getBody();
+		
+		List<String> roomNameList = new ArrayList<>();
+		
+		SimpleGUIServer.roomList.forEach(room -> {
+			roomNameList.add(room.getRoomName());
+		});
+		
+		RequestBodyDto<List<String>> updateRoomListRequestBodyDto = 
+				new RequestBodyDto<List<String>>("updateRoomList", roomNameList);
+		
+		ServerSender.getInstance().send(socket, updateRoomListRequestBodyDto);
+	}
+	
+	private void createRoom(String requestBody) {
+		String roomName = (String) gson.fromJson(requestBody, RequestBodyDto.class).getBody();
+		
+		Room newRoom = Room.builder()
+			.roomName(roomName)
+			.owner(username)
+			.userList(new ArrayList<ConnectedSocket>())
+			.build();
+		
+		SimpleGUIServer.roomList.add(newRoom);
+		
+		List<String> roomNameList = new ArrayList<>();
+		
+		SimpleGUIServer.roomList.forEach(room -> {
+			roomNameList.add(room.getRoomName());
+		});
+		
+		RequestBodyDto<List<String>> updateRoomListRequestBodyDto = 
+				new RequestBodyDto<List<String>>("updateRoomList", roomNameList);
+		
+		SimpleGUIServer.connectedSocketList.forEach(con -> {
+			ServerSender.getInstance().send(con.socket, updateRoomListRequestBodyDto);
+		});
+	}
+	
+	private void join(String requestBody) {
+		String roomName = (String) gson.fromJson(requestBody, RequestBodyDto.class).getBody();
+		
+		SimpleGUIServer.roomList.forEach(room -> {
+			if(room.getRoomName().equals(roomName)) {
+				room.getUserList().add(this);
 				
-				SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
-					List<String> usernameList = new ArrayList<>();
-					
-					SimpleGUIServer.connectedSocketList.forEach(con -> {
-						usernameList.add(con.username);
-					});
-					
+				List<String> usernameList = new ArrayList<>();
+				
+				room.getUserList().forEach(con -> {
+					usernameList.add(con.username);
+				});
+				
+				room.getUserList().forEach(connectedSocket -> {
 					RequestBodyDto<List<String>> updateUserListDto = new RequestBodyDto<List<String>>("updateUserList", usernameList);
 					RequestBodyDto<String> joinMessageDto = new RequestBodyDto<String>("showMessage", username + "님이 들어왔습니다.");
 					
@@ -69,28 +134,32 @@ public class ConnectedSocket extends Thread {
 						e.printStackTrace();
 					}
 					ServerSender.getInstance().send(connectedSocket.socket, joinMessageDto);
-				
 				});
 				
-				break;
+			}
+		});
 		
-			case "sendMessage" : 
-				TypeToken<RequestBodyDto<SendMessage>> typeToken = new TypeToken<RequestBodyDto<SendMessage>>() {};
-				
-				RequestBodyDto<SendMessage> requestBodyDto = gson.fromJson(requestBody, typeToken.getType());
-				SendMessage sendMessage = requestBodyDto.getBody();
-				
-				SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
-					RequestBodyDto<String> dto = 
-							new RequestBodyDto<String>("showMessage", sendMessage.getFromUsername() + ": " + sendMessage.getMessageBody());
-					
-					ServerSender.getInstance().send(connectedSocket.socket, dto);
-				});
-				
-				
-				break;
-		}
+		
+		SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
+			
+		
+		});
 	}
+	
+	private void sendMessage(String requestBody) {
+		TypeToken<RequestBodyDto<SendMessage>> typeToken = new TypeToken<RequestBodyDto<SendMessage>>() {};
+		
+		RequestBodyDto<SendMessage> requestBodyDto = gson.fromJson(requestBody, typeToken.getType());
+		SendMessage sendMessage = requestBodyDto.getBody();
+		
+		SimpleGUIServer.connectedSocketList.forEach(connectedSocket -> {
+			RequestBodyDto<String> dto = 
+					new RequestBodyDto<String>("showMessage", sendMessage.getFromUsername() + ": " + sendMessage.getMessageBody());
+			
+			ServerSender.getInstance().send(connectedSocket.socket, dto);
+		});
+	}
+	
 }
 
 
